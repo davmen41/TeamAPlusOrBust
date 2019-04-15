@@ -1,7 +1,7 @@
 /*
  * Time Machine Code - Make sure any code added has comments!
  */
-//Half-Adder
+//Half-Adder Logic
 module AddHalf (input a, b, output carry_out, sum);
 	xor Gate1(sum, a, b);
 	and Gate2(carry_out, a, b);
