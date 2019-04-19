@@ -1,6 +1,20 @@
 /*
  * Time Machine Code - Make sure any code added has comments!
  */
+ //D-Flip Flop
+module DFF(clk, in, out);
+	parameter n = 1;
+	input clk;
+	input [n-1:0] in;
+	output [n-1:0] out;
+	reg [n-1:0] out;
+	
+	initial out <= 0;
+	always @(posedge clk)
+	out = in;
+	
+endmodule
+ 
 //Half-Adder Logic
 module AddHalf (input a, b, output carry_out, sum);
 	xor Gate1(sum, a, b);
@@ -60,17 +74,17 @@ endmodule
 /*
  * State 1: Rest State
  */
- module rest(output nextState);
- 
+ module rest(output [1:0] nextState);
+ 	reg [1:0] nextState;
 	//do nothing for now
-	assign nextState = 3'b001;
+	initial assign nextState = 2'b10;
  endmodule
  
  /*
   *	State 2: Load ship
   */
 
-module LoadShip (input [3:0] crewSize, passengerSize, cargoSpace, output nextState);
+module LoadShip (input [3:0] crewSize, passengerSize, cargoSpace, output[1:0] nextState);
 	wire [3:0] fixedPassengerSize; wire [3:0] fixedCrewSize; wire [3:0] fixedCargoSize;
 	wire isShipFull; wire isCrewOnBoard; wire isCargoFull;
 	reg [2:0] state; wire nextState;
@@ -92,11 +106,126 @@ module LoadShip (input [3:0] crewSize, passengerSize, cargoSpace, output nextSta
 
 	always @* begin
 		if(shipLoaded)begin
-			state <= 3'b010;
+			state <= 2'b10;
 		end else begin
-			state <= 3'b111;
+			state <= 2'b11;
 		end
 	end
-	
 	assign nextState = state;
 endmodule 
+
+//Ties in all states together, place your code here!!
+module mux(input [2:0] selector,input[3:0] crew, passenger,cargospace, output [1:0] out);
+	reg [1:0] out;
+	wire [1:0] rst, load, travel, destination;
+
+	//IF YOU NEED TO OUTPUT AS INTEGER, PARSE HERE
+	integer crewInt, passIn,cargoIn;	
+	always @* begin
+		crewInt = crew;
+		passIn = passenger;
+		cargoIn = cargospace;
+	end
+	
+	//ADD MODULE CALL TO YOUR STATE HERE
+	rest S1(rst);
+	LoadShip S2(crew, passenger, cargospace, load);
+	
+	//ADD MODULE OUTPUT TO CASE STATEMENT AND UPDATE THE OUTPUT FOR YOUR STATE
+	always @(selector) begin
+		case ( selector )
+			3'b000: out = rst;
+			3'b001: out = load;
+			3'b010: out = 2'b10;
+			3'b011: out = 2'b10;
+			3'b100: out = 2'b10;
+			3'b111: out = 2'b10;
+			default: out = 2'b00;
+		endcase
+		//Output from each state!
+		case ( selector )
+			3'b000:$display(" Rest State           %b      Firing up all systems...",rst);
+			3'b001:$display(" Load State           %b      Passengers on board %b(%0d)/15, crew %b(%0d)/4, cargo space %b(%0d)/15(kg)"
+				,rst,passenger,passIn,crew,crewInt,cargospace,cargoIn);
+			3'b010:$display(" Calculate State      %b     Firing up all systems...",selector);
+			3'b011:$display(" Travel State         %b     Firing up all systems...",selector);
+			3'b100:$display(" Destination State    %b     Firing up all systems...",selector);
+			3'b111:$display(" Doom State           %b     Whoops! Your ship has crashed, retrace your steps to see your mistake",selector);
+			default:$display(" Rest State          %b     Firing up all systems...",selector);
+		endcase
+	end
+endmodule
+
+/*
+ * TIME MACHINE MODULE: ALL CODE COMES TOGETHER HERE
+ */
+module TimeMachine(input clk,input[3:0] crew, passenger,cargospace, output [2:0]q, output [1:0] out, output cs0, cs1,cs2);
+	
+	wire cs2,cs1,cs0;
+	wire ns2, ns1,ns0;
+	wire [2:0] q;
+	wire [1:0] out;
+		
+	assign ns0 = out[0] | (~out[1] & cs0) | (out[1] & cs1 & ~cs0) |
+		(out[1] & cs2 & cs1) | (~cs2 & ~cs1 & ~cs0 & out[1]);
+	
+	
+	assign ns1 = out[0] | (~out[1] & cs1) |(out[1] & ~cs1 & cs0) |
+		(out[1] & cs1 & ~cs0) | (cs2 & cs1 & out[1]);
+ 	
+	
+	assign ns2 = cs2 | out[0] | (out[1] & cs1 & cs0);
+	
+	DFF d0(clk, ns0, cs0);
+	DFF d1(clk, ns1, cs1);
+	DFF d2(clk, ns2, cs2);
+	
+	mux stateSelector({cs2,cs1,cs0}, crew,passenger,cargospace,out);
+
+	
+	assign q[0] = cs0;
+	assign q[1] = cs1;
+	assign q[2] = cs2;
+endmodule
+
+/*
+	Steps to Merging your code:
+	1)Add any needed inputs into the testbench
+	2)make sure you add inputs into methods mux and TimeMachine
+	3)add in your inputs to call for mux stateSelector inside TimeMachine
+	4)Inside mux, make call to your method and place the output inside
+		the case statement, also place your output inside the output case
+	5)Test to make sure everything works!
+ */
+
+module Testbench();
+  reg clk;
+  wire [2:0]q;
+  wire [1:0] out;
+  wire cs2,cs1,cs0;
+  
+  //PLACE ALL INPUTS HERE AND MAKE SURE TO INCLUDE THEM IN 
+  wire [3:0] cargospace = 4'b1001;
+  wire [3:0] passenger = 4'b1011;
+  wire [3:0] crew = 4'b0100;
+  
+  //ADD YOUR INPUT HERE TOO
+  TimeMachine ex(clk, crew, passenger,cargospace, q, out, cs0, cs1, cs2);
+          
+  initial begin
+   $display("TIME MACHINE");
+   $display("|------------------|--------|------------------------------------------------------|");
+   $display("|Current State     | Output |State Output                                          |");
+   $display("|------------------|--------|------------------------------------------------------|");
+	forever
+		begin
+			#1 clk = 0;
+			
+			#1 clk = 1;
+		end	
+	end
+  initial begin
+	#20
+	$finish;
+  end 
+endmodule
