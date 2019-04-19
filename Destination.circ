@@ -124,67 +124,12 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
     <wire from="(440,530)" to="(450,530)"/>
     <wire from="(320,470)" to="(330,470)"/>
     <wire from="(830,220)" to="(910,220)"/>
-    <comp lib="1" loc="(1070,320)" name="NOT Gate"/>
-    <comp lib="0" loc="(460,230)" name="Pin">
-      <a name="tristate" val="false"/>
-      <a name="label" val="Oxygen"/>
-    </comp>
-    <comp lib="0" loc="(460,260)" name="Pin">
-      <a name="tristate" val="false"/>
-      <a name="label" val="Life"/>
-    </comp>
-    <comp lib="1" loc="(370,570)" name="OR Gate"/>
-    <comp lib="0" loc="(480,440)" name="Splitter">
+    <comp lib="0" loc="(1170,310)" name="Splitter">
       <a name="facing" val="west"/>
-      <a name="fanout" val="4"/>
-      <a name="incoming" val="4"/>
     </comp>
     <comp lib="0" loc="(320,210)" name="Pin">
       <a name="tristate" val="false"/>
       <a name="label" val="Radiation"/>
-    </comp>
-    <comp lib="0" loc="(220,490)" name="Pin">
-      <a name="width" val="9"/>
-      <a name="tristate" val="false"/>
-    </comp>
-    <comp lib="1" loc="(850,510)" name="OR Gate"/>
-    <comp lib="1" loc="(770,220)" name="AND Gate"/>
-    <comp lib="6" loc="(136,384)" name="Text">
-      <a name="text" val="Altitude check"/>
-    </comp>
-    <comp lib="3" loc="(320,460)" name="Comparator">
-      <a name="width" val="9"/>
-      <a name="mode" val="unsigned"/>
-    </comp>
-    <comp lib="3" loc="(740,440)" name="Comparator">
-      <a name="width" val="9"/>
-      <a name="mode" val="unsigned"/>
-    </comp>
-    <comp lib="0" loc="(220,430)" name="Pin">
-      <a name="width" val="9"/>
-      <a name="tristate" val="false"/>
-    </comp>
-    <comp lib="0" loc="(420,530)" name="Pin">
-      <a name="tristate" val="false"/>
-    </comp>
-    <comp lib="6" loc="(823,207)" name="Text">
-      <a name="text" val="Habitability (ERR)"/>
-    </comp>
-    <comp lib="3" loc="(570,430)" name="Shifter">
-      <a name="width" val="9"/>
-      <a name="shift" val="lr"/>
-    </comp>
-    <comp lib="1" loc="(400,210)" name="NOT Gate"/>
-    <comp lib="0" loc="(460,170)" name="Pin">
-      <a name="tristate" val="false"/>
-      <a name="label" val="Temperature"/>
-    </comp>
-    <comp lib="1" loc="(1070,340)" name="NOT Gate"/>
-    <comp lib="0" loc="(620,360)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
-      <a name="width" val="9"/>
-      <a name="labelloc" val="east"/>
     </comp>
     <comp lib="0" loc="(1210,310)" name="Pin">
       <a name="facing" val="west"/>
@@ -192,8 +137,63 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
       <a name="width" val="2"/>
       <a name="labelloc" val="east"/>
     </comp>
-    <comp lib="0" loc="(1170,310)" name="Splitter">
+    <comp lib="0" loc="(460,170)" name="Pin">
+      <a name="tristate" val="false"/>
+      <a name="label" val="Temperature"/>
+    </comp>
+    <comp lib="1" loc="(770,220)" name="AND Gate"/>
+    <comp lib="6" loc="(136,384)" name="Text">
+      <a name="text" val="Altitude check"/>
+    </comp>
+    <comp lib="1" loc="(1070,320)" name="NOT Gate"/>
+    <comp lib="0" loc="(620,360)" name="Pin">
       <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="width" val="10"/>
+      <a name="labelloc" val="east"/>
+    </comp>
+    <comp lib="0" loc="(220,430)" name="Pin">
+      <a name="width" val="10"/>
+      <a name="tristate" val="false"/>
+    </comp>
+    <comp lib="1" loc="(850,510)" name="OR Gate"/>
+    <comp lib="0" loc="(460,230)" name="Pin">
+      <a name="tristate" val="false"/>
+      <a name="label" val="Oxygen"/>
+    </comp>
+    <comp lib="0" loc="(220,490)" name="Pin">
+      <a name="width" val="10"/>
+      <a name="tristate" val="false"/>
+    </comp>
+    <comp lib="6" loc="(823,207)" name="Text">
+      <a name="text" val="Habitability (ERR)"/>
+    </comp>
+    <comp lib="0" loc="(460,260)" name="Pin">
+      <a name="tristate" val="false"/>
+      <a name="label" val="Life"/>
+    </comp>
+    <comp lib="1" loc="(400,210)" name="NOT Gate"/>
+    <comp lib="0" loc="(480,440)" name="Splitter">
+      <a name="facing" val="west"/>
+      <a name="fanout" val="4"/>
+      <a name="incoming" val="4"/>
+    </comp>
+    <comp lib="3" loc="(320,460)" name="Comparator">
+      <a name="width" val="10"/>
+      <a name="mode" val="unsigned"/>
+    </comp>
+    <comp lib="1" loc="(1070,340)" name="NOT Gate"/>
+    <comp lib="1" loc="(370,570)" name="OR Gate"/>
+    <comp lib="3" loc="(740,440)" name="Comparator">
+      <a name="width" val="10"/>
+      <a name="mode" val="unsigned"/>
+    </comp>
+    <comp lib="3" loc="(570,430)" name="Shifter">
+      <a name="width" val="10"/>
+      <a name="shift" val="lr"/>
+    </comp>
+    <comp lib="0" loc="(420,530)" name="Pin">
+      <a name="tristate" val="false"/>
     </comp>
   </circuit>
 </project>
