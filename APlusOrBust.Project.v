@@ -1,6 +1,20 @@
 /*
  * Time Machine Code - Make sure any code added has comments!
  */
+ //D-Flip Flop
+module DFF(clk, in, out);
+	parameter n = 1;
+	input clk;
+	input [n-1:0] in;
+	output [n-1:0] out;
+	reg [n-1:0] out;
+	
+	initial out <= 0;
+	always @(posedge clk)
+	out = in;
+	
+endmodule
+ 
 //Half-Adder Logic
 module AddHalf (input a, b, output carry_out, sum);
 	xor Gate1(sum, a, b);
@@ -60,17 +74,17 @@ endmodule
 /*
  * State 1: Rest State
  */
- module rest(output nextState);
- 
+ module rest(output [1:0] nextState);
+ 	reg [1:0] nextState;
 	//do nothing for now
-	assign nextState = 3'b001;
+	initial assign nextState = 2'b10;
  endmodule
  
  /*
   *	State 2: Load ship
   */
 
-module LoadShip (input [3:0] crewSize, passengerSize, cargoSpace, output nextState);
+module LoadShip (input [3:0] crewSize, passengerSize, cargoSpace, output[1:0] nextState);
 	wire [3:0] fixedPassengerSize; wire [3:0] fixedCrewSize; wire [3:0] fixedCargoSize;
 	wire isShipFull; wire isCrewOnBoard; wire isCargoFull;
 	reg [2:0] state; wire nextState;
@@ -92,11 +106,105 @@ module LoadShip (input [3:0] crewSize, passengerSize, cargoSpace, output nextSta
 
 	always @* begin
 		if(shipLoaded)begin
-			state <= 3'b010;
+			state <= 2'b10;
 		end else begin
-			state <= 3'b111;
+			state <= 2'b11;
 		end
 	end
 	
 	assign nextState = state;
 endmodule 
+
+//Ties in all states together, place your code here!!
+module mux(input [2:0] selector, output [1:0] out);
+	reg [1:0] out;
+	wire [1:0] rst, load, travel, destination;
+	
+	wire [3:0] crew = 4'b0100;
+	wire [3:0] passenger = 4'b1111;
+	
+	rest S1(rst);
+	LoadShip S2(crew, passenger, passenger, load);
+	
+	always @(selector) begin
+	case ( selector )
+		3'b000: 
+			out = rst;
+			//$display("Do I work?");
+		3'b001: out = load;
+		3'b010: out = 2'b10;
+		3'b011: out = 2'b10;
+		3'b100: out = 2'b10;
+		3'b111: out = 2'b10;
+		default: out = 2'b00;
+	endcase
+	end
+	always @* begin
+		$display("1MUX(C): %b SELECTOR: %b",out, selector);
+	end
+
+endmodule
+
+/*
+ * TIME MACHINE MODULE: ALL CODE COMES TOGETHER HERE
+ */
+module TimeMachine(input clk, output [2:0]q, output [1:0] out, output cs0, cs1,cs2);
+	
+	wire cs2,cs1,cs0;
+	wire ns2, ns1,ns0;
+	wire [2:0] q;
+	wire [1:0] out;
+		
+	assign ns0 = out[0] | (~out[1] & cs0) | (out[1] & cs1 & ~cs0) |
+		(out[1] & cs2 & cs1) | (~cs2 & ~cs1 & ~cs0 & out[1]);
+	
+	
+	assign ns1 = out[0] | (~out[1] & cs1) |(out[1] & ~cs1 & cs0) |
+		(out[1] & cs1 & ~cs0) | (cs2 & cs1 & out[1]);
+ 	
+	
+	assign ns2 = cs2 | out[0] | (out[1] & cs1 & cs0);
+	
+	DFF d0(clk, ns0, cs0);
+	DFF d1(clk, ns1, cs1);
+	DFF d2(clk, ns2, cs2);
+	
+	mux stateSelector({cs2,cs1,cs0}, out);
+
+	
+	assign q[0] = cs0;
+	assign q[1] = cs1;
+	assign q[2] = cs2;
+endmodule
+
+module Testbench();
+  reg clk;
+  wire [2:0]q;
+  wire [1:0] out;
+  wire cs2,cs1,cs0;
+  
+  //PLACE ALL INPUTS HERE AND MAKE SURE TO INCLUDE THEM IN 
+  
+  
+  TimeMachine ex(clk,q, out, cs0, cs1, cs2);
+          
+  initial begin
+	forever
+		begin
+			$display("Toggle clk.");
+			#1 clk = 0;
+			display;
+			
+			#1 clk = 1;
+			display;
+		end	
+	end
+  
+  task display;
+    #1 $display("%b, Current State: %0h%0h CS2: %b CS1: %b CS0: %b",clk,ex.out[1], ex.out[0], ex.cs2,ex.cs1, ex.cs0);
+  endtask
+  initial begin
+	#20
+	$finish;
+  end 
+endmodule
