@@ -28,6 +28,43 @@ module AddFull (input a, b, carry_in, output carry_out, sum);
 	AddHalf M2 (w2, carry_in, w3, sum);
 	or (carry_out, w1, w3);
 endmodule
+
+//subtractor 
+module subtractorCal(a,b,s);
+	parameter k=12;
+	input signed [k-1:0] a,b;
+	output signed [k-1:0] s;
+	reg [k-1:0] s;
+	always @* begin	
+		s=a-b;
+	end
+endmodule
+
+//Toan's comparator
+module comparatorCal(a,b,larger,equal, smaller);
+	parameter k=12;
+	input  signed [k-1:0] a,b;
+	output reg larger,equal, smaller;
+	always @* begin
+		if (a<b) begin
+			larger=0;
+			equal=0;
+			smaller=1;
+		end
+		else if (a==b) begin
+			larger=0;
+			equal=1;
+			smaller=0;
+		end
+		else begin
+			larger=1;
+			equal=0;
+			smaller=0;
+		end
+	end
+endmodule
+
+//David's comparator
 module comparator(input [3:0] A, B, output result);
 	wire a1,a2,a3,a4; // AND outputs
 	wire [7:0] andOutput;
@@ -114,29 +151,65 @@ module LoadShip (input [3:0] crewSize, passengerSize, cargoSpace, output[1:0] ne
 	assign nextState = state;
 endmodule 
 
-//Ties in all states together, place your code here!!
-module mux(input [2:0] selector,input[3:0] crew, passenger,cargospace, output [1:0] out);
-	reg [1:0] out;
-	wire [1:0] rst, load, travel, destination;
+/*
+ *	State 3: Calculate
+ */
 
+module Calculation (input signed [11:0] yearIn,output signed [11:0] difference,output [1:0] nextState);
+	wire signed [11:0] defaultYear, zero;
+	wire [2:0] travelMode;
+	wire l,l2,e,e2,s,s2;
+	reg [2:0] state; wire nextState;
+	
+	assign defaultYear=12'b011111100011;
+	assign zero=12'b0;
+	
+	//compare with zero
+	comparatorCal #(12) checkZero(yearIn,zero,l,e,s);
+	//find year difference
+	subtractorCal #(12) minus2019(yearIn,defaultYear,difference);
+	//compare w 2019 to find the mode
+	comparatorCal #(12) check2(yearIn,defaultYear,l2,e2,s2);
+		
+	always @* begin
+		state=l2|s2;
+	end
+	assign nextState={state,s};
+endmodule
+	
+	
+//Ties in all states together, place your code here!!
+module mux(
+	input [2:0] selector,
+	input[3:0] crew, passenger,cargospace,
+	input[11:0] year,
+	output [1:0] out);
+	
+	reg [1:0] out;
+	wire [1:0] rst, load, next,travel, destination;
+	wire signed [11:0] difference;
 	//IF YOU NEED TO OUTPUT AS INTEGER, PARSE HERE
 	integer crewInt, passIn,cargoIn;	
+	integer yearInt,differenceInt;
 	always @* begin
 		crewInt = crew;
 		passIn = passenger;
 		cargoIn = cargospace;
+		yearInt= year;
+		differenceInt=difference;
 	end
 	
 	//ADD MODULE CALL TO YOUR STATE HERE
 	rest S1(rst);
 	LoadShip S2(crew, passenger, cargospace, load);
+	Calculation S3(year,difference, next);
 	
 	//ADD MODULE OUTPUT TO CASE STATEMENT AND UPDATE THE OUTPUT FOR YOUR STATE
 	always @(selector) begin
 		case ( selector )
 			3'b000: out = rst;
 			3'b001: out = load;
-			3'b010: out = 2'b10;
+			3'b010: out = next;
 			3'b011: out = 2'b10;
 			3'b100: out = 2'b10;
 			3'b111: out = 2'b10;
@@ -147,7 +220,7 @@ module mux(input [2:0] selector,input[3:0] crew, passenger,cargospace, output [1
 			3'b000:$display(" Rest State           %b      Firing up all systems...",rst);
 			3'b001:$display(" Load State           %b      Passengers on board %b(%0d)/15, crew %b(%0d)/4, cargo space %b(%0d)/15(kg)"
 				,rst,passenger,passIn,crew,crewInt,cargospace,cargoIn);
-			3'b010:$display(" Calculate State      %b     Firing up all systems...",selector);
+			3'b010:$display(" Calculate State      %b      Current Year:2019, Year travel to:%0d, Difference amount:%0d",next,yearInt,differenceInt);
 			3'b011:$display(" Travel State         %b     Firing up all systems...",selector);
 			3'b100:$display(" Destination State    %b     Firing up all systems...",selector);
 			3'b111:$display(" Doom State           %b     Whoops! Your ship has crashed, retrace your steps to see your mistake",selector);
@@ -159,11 +232,11 @@ endmodule
 /*
  * TIME MACHINE MODULE: ALL CODE COMES TOGETHER HERE
  */
-module TimeMachine(input clk,input[3:0] crew, passenger,cargospace, output [2:0]q, output [1:0] out, output cs0, cs1,cs2);
+module TimeMachine(input clk,input[3:0] crew, passenger,cargospace, input[11:0] year,output [2:0]q, output [1:0] out, output cs0, cs1,cs2);
 	
 	wire cs2,cs1,cs0;
 	wire ns2, ns1,ns0;
-	wire [2:0] q;
+	wire [2:0] q;	//current
 	wire [1:0] out;
 		
 	assign ns0 = out[0] | (~out[1] & cs0) | (out[1] & cs1 & ~cs0) |
@@ -179,8 +252,8 @@ module TimeMachine(input clk,input[3:0] crew, passenger,cargospace, output [2:0]
 	DFF d0(clk, ns0, cs0);
 	DFF d1(clk, ns1, cs1);
 	DFF d2(clk, ns2, cs2);
-	
-	mux stateSelector({cs2,cs1,cs0}, crew,passenger,cargospace,out);
+	//change here too
+	mux stateSelector({cs2,cs1,cs0}, crew,passenger,cargospace,year,out);
 
 	
 	assign q[0] = cs0;
@@ -208,9 +281,10 @@ module Testbench();
   wire [3:0] cargospace = 4'b1001;
   wire [3:0] passenger = 4'b1011;
   wire [3:0] crew = 4'b0100;
+  wire [11:0] year= 12'b011101100011;
   
   //ADD YOUR INPUT HERE TOO
-  TimeMachine ex(clk, crew, passenger,cargospace, q, out, cs0, cs1, cs2);
+  TimeMachine ex(clk, crew, passenger,cargospace, year, q, out, cs0, cs1, cs2);
           
   initial begin
    $display("TIME MACHINE");
