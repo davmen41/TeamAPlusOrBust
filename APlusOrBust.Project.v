@@ -15,6 +15,22 @@ module DFF(clk, in, out);
 	
 endmodule
  
+ module Mux3a(a2, a1, a0, s, b) ;
+   parameter k = 2 ;
+   input [k-1:0] a0, a1, a2 ;  // inputs
+   input [1:0]   s ; // one-hot select
+   output [k-1:0] b ;
+  reg [k-1:0] b ;
+    always @(*) begin
+    case(s) 
+      3'b01: b = a0 ;
+      3'b10: b = a1 ;
+      3'b00: b = a2 ;
+      default: b =  {k{1'bx}} ;
+    endcase
+  end
+endmodule // Mux3a
+
 //Half-Adder Logic
 module AddHalf (input a, b, output carry_out, sum);
 	xor Gate1(sum, a, b);
@@ -27,6 +43,20 @@ module AddFull (input a, b, carry_in, output carry_out, sum);
 	AddHalf M1 (a, b, w1, w2);
 	AddHalf M2 (w2, carry_in, w3, sum);
 	or (carry_out, w1, w3);
+endmodule
+
+//n bit adder
+module nBitAdder(f, cOut, a, b, cIn);
+  parameter n = 7; 	
+ 
+  output reg [n:0] f;
+  output reg cOut;
+  input [n:0] a;
+  input [n:0] b;
+  input cIn;
+ 
+  always @(a, b, cIn)
+    {cOut, f} = a + b + cIn;
 endmodule
 
 //subtractor 
@@ -176,6 +206,26 @@ module Calculation (input signed [11:0] yearIn,output signed [11:0] difference,o
 	end
 	assign nextState={state,s};
 endmodule
+/*
+ *	State 4: Travel
+ */	
+module Travel(input [7:0] water, food,output [1:0] nextState);
+	wire [7:0] enoughFeed;
+	wire [7:0] buffer;
+	wire nextState;
+	wire l,e,s;
+	wire zero=0;
+	wire cout;
+	wire [1:0] temp;
+	assign enoughFeed=8'b1100100; 
+	
+	nBitAdder #(7) addUp(buffer,cout,water,food,zero);
+	assign temp={e,s};
+	comparatorCal #(8) comp(buffer, enoughFeed, l,e,s);
+	Mux3a mux(2'b10, 2'b00, 2'b11, temp, nextState) ;
+
+endmodule
+	
 	
 /*
  *	State 5: Destination
@@ -199,6 +249,15 @@ endmodule
 	assign nextState={pass,err};
 endmodule
  
+ /*
+ * State 6: doom
+ */
+ module doom(output [1:0] nextState);
+ 	reg [1:0] nextState;
+	//do nothing for now
+	initial assign nextState = 2'b00;
+ endmodule
+ 
 //Ties in all states together, place your code here!!
 module mux(
 	input [2:0] selector,
@@ -206,15 +265,17 @@ module mux(
 	input[11:0] year,
 	input [9:0] alt,
 	input temperature,radiation,o2,lives,
+	input [7:0] h2o, bread,
 	output [1:0] out);
 	
 	reg [1:0] out;
-	wire [1:0] rst, load, next,safe, destination;
+	wire [1:0] rst, load, next,safe,enough;
 	wire signed [11:0] difference;
 	//IF YOU NEED TO OUTPUT AS INTEGER, PARSE HERE
 	integer crewInt, passIn,cargoIn;	
 	integer yearInt,differenceInt;
 	integer altInt;
+	integer h2oInt, breadInt;
 	always @* begin
 		crewInt = crew;
 		passIn = passenger;
@@ -222,6 +283,8 @@ module mux(
 		yearInt= year;
 		differenceInt=difference;
 		altInt=alt;
+		h2oInt=h2o;
+		breadInt=bread;
 
 	end
 	
@@ -229,6 +292,7 @@ module mux(
 	rest S1(rst);
 	LoadShip S2(crew, passenger, cargospace, load);
 	Calculation S3(year,difference, next);
+	Travel S4(h2o,bread,enough);
 	Destination S5(alt,temperature,radiation,o2,lives,safe);
 	//ADD MODULE OUTPUT TO CASE STATEMENT AND UPDATE THE OUTPUT FOR YOUR STATE
 	always @(selector) begin
@@ -236,7 +300,7 @@ module mux(
 			3'b000: out = rst;
 			3'b001: out = load;
 			3'b010: out = next;
-			3'b011: out = 2'b10;
+			3'b011: out = enough;
 			3'b100: out = safe;
 			3'b111: out = 2'b10;
 			default: out = 2'b00;
@@ -247,7 +311,7 @@ module mux(
 			3'b001:$display(" Load State           %b      Passengers on board %b(%0d)/15, crew %b(%0d)/4, cargo space %b(%0d)/15(kg)"
 				,load,passenger,passIn,crew,crewInt,cargospace,cargoIn);
 			3'b010:$display(" Calculate State      %b      Current Year:2019, Year travel to:%0d, Difference amount:%0d",next,yearInt,differenceInt);
-			3'b011:$display(" Travel State         %b      Firing up all systems...",selector);
+			3'b011:$display(" Travel State         %b      Food:%0d, Water:%0d. Check if provisions are enough",safe,breadInt,h2oInt);
 			3'b100:$display(" Destination State    %b      Safe altitude:384, Landed altitude:%0d,Temperature:%b,Radiation:%b,o2:%b,Lives:%b",
 					safe,altInt,temperature,radiation,o2,lives);
 			3'b111:$display(" Doom State           %b     Whoops! Your ship has crashed, retrace your steps to see your mistake",selector);
@@ -260,7 +324,7 @@ endmodule
  * TIME MACHINE MODULE: ALL CODE COMES TOGETHER HERE
  */
 module TimeMachine(input clk,input[3:0] crew, passenger,cargospace, input[11:0] year,input [9:0] alt,
-	input temperature,radiation,o2,lives,output [2:0]q, output [1:0] out, output cs0, cs1,cs2);
+	input temperature,radiation,o2,lives,input [7:0] h2o,bread,output [2:0]q, output [1:0] out, output cs0, cs1,cs2);
 	
 	wire cs2,cs1,cs0;
 	wire ns2, ns1,ns0;
@@ -281,7 +345,7 @@ module TimeMachine(input clk,input[3:0] crew, passenger,cargospace, input[11:0] 
 	DFF d1(clk, ns1, cs1);
 	DFF d2(clk, ns2, cs2);
 	//change here too
-	mux stateSelector({cs2,cs1,cs0}, crew,passenger,cargospace,year,alt, temperature,radiation,o2,lives,out);
+	mux stateSelector({cs2,cs1,cs0}, crew,passenger,cargospace,year,alt,temperature,radiation,o2,lives,h2o,bread,out);
 
 	
 	assign q[0] = cs0;
@@ -315,9 +379,11 @@ module Testbench();
   wire radiation=0;
   wire o2=1;
   wire lives=1;
+  wire [7:0] h2o =8'b01101000;
+  wire [7:0] bread=8'b00001001;
   
   //ADD YOUR INPUT HERE TOO
-  TimeMachine ex(clk, crew, passenger,cargospace, year,alt, temperature,radiation,o2,lives,q, out, cs0, cs1, cs2);
+  TimeMachine ex(clk, crew, passenger,cargospace, year,alt, temperature,radiation,o2,lives,h2o,bread,q, out, cs0, cs1, cs2);
           
   initial begin
    $display("TIME MACHINE");
