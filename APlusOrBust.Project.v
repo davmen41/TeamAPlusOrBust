@@ -177,33 +177,59 @@ module Calculation (input signed [11:0] yearIn,output signed [11:0] difference,o
 	assign nextState={state,s};
 endmodule
 	
+/*
+ *	State 5: Destination
+ */
+ module Destination(input signed [9:0] altitude, input temp, rad, oxygen, life, output[1:0] nextState);
+	wire signed [9:0] fixedAlt;
+	wire l,l2,e,e2,s,s2;
+	reg [2:0] state; wire nextState;
+	wire  pass;
+	wire signed [9:0] secondAlt;
+	assign fixedAlt=10'b0110000000;
+	wire err= ~(temp & ~rad & oxygen &life);
 	
+	//compare with max altitude
+	comparatorCal #(10) checkAlt(altitude,fixedAlt, l,e,s);
+	
+	//shift bits if larger
+	assign secondAlt=altitude<<<l; 
+	comparatorCal #(10) check2(altitude,fixedAlt,l2,e2,s2);
+	assign pass = e | s | ~l2;
+	assign nextState={pass,err};
+endmodule
+ 
 //Ties in all states together, place your code here!!
 module mux(
 	input [2:0] selector,
 	input[3:0] crew, passenger,cargospace,
 	input[11:0] year,
+	input [9:0] alt,
+	input temperature,radiation,o2,lives,
 	output [1:0] out);
 	
 	reg [1:0] out;
-	wire [1:0] rst, load, next,travel, destination;
+	wire [1:0] rst, load, next,safe, destination;
 	wire signed [11:0] difference;
 	//IF YOU NEED TO OUTPUT AS INTEGER, PARSE HERE
 	integer crewInt, passIn,cargoIn;	
 	integer yearInt,differenceInt;
+	integer altInt;
 	always @* begin
 		crewInt = crew;
 		passIn = passenger;
 		cargoIn = cargospace;
 		yearInt= year;
 		differenceInt=difference;
+		altInt=alt;
+
 	end
 	
 	//ADD MODULE CALL TO YOUR STATE HERE
 	rest S1(rst);
 	LoadShip S2(crew, passenger, cargospace, load);
 	Calculation S3(year,difference, next);
-	
+	Destination S5(alt,temperature,radiation,o2,lives,safe);
 	//ADD MODULE OUTPUT TO CASE STATEMENT AND UPDATE THE OUTPUT FOR YOUR STATE
 	always @(selector) begin
 		case ( selector )
@@ -211,7 +237,7 @@ module mux(
 			3'b001: out = load;
 			3'b010: out = next;
 			3'b011: out = 2'b10;
-			3'b100: out = 2'b10;
+			3'b100: out = safe;
 			3'b111: out = 2'b10;
 			default: out = 2'b00;
 		endcase
@@ -219,10 +245,11 @@ module mux(
 		case ( selector )
 			3'b000:$display(" Rest State           %b      Firing up all systems...",rst);
 			3'b001:$display(" Load State           %b      Passengers on board %b(%0d)/15, crew %b(%0d)/4, cargo space %b(%0d)/15(kg)"
-				,rst,passenger,passIn,crew,crewInt,cargospace,cargoIn);
+				,load,passenger,passIn,crew,crewInt,cargospace,cargoIn);
 			3'b010:$display(" Calculate State      %b      Current Year:2019, Year travel to:%0d, Difference amount:%0d",next,yearInt,differenceInt);
-			3'b011:$display(" Travel State         %b     Firing up all systems...",selector);
-			3'b100:$display(" Destination State    %b     Firing up all systems...",selector);
+			3'b011:$display(" Travel State         %b      Firing up all systems...",selector);
+			3'b100:$display(" Destination State    %b      Safe altitude:384, Landed altitude:%0d,Temperature:%b,Radiation:%b,o2:%b,Lives:%b",
+					safe,altInt,temperature,radiation,o2,lives);
 			3'b111:$display(" Doom State           %b     Whoops! Your ship has crashed, retrace your steps to see your mistake",selector);
 			default:$display(" Rest State          %b     Firing up all systems...",selector);
 		endcase
@@ -232,7 +259,8 @@ endmodule
 /*
  * TIME MACHINE MODULE: ALL CODE COMES TOGETHER HERE
  */
-module TimeMachine(input clk,input[3:0] crew, passenger,cargospace, input[11:0] year,output [2:0]q, output [1:0] out, output cs0, cs1,cs2);
+module TimeMachine(input clk,input[3:0] crew, passenger,cargospace, input[11:0] year,input [9:0] alt,
+	input temperature,radiation,o2,lives,output [2:0]q, output [1:0] out, output cs0, cs1,cs2);
 	
 	wire cs2,cs1,cs0;
 	wire ns2, ns1,ns0;
@@ -253,7 +281,7 @@ module TimeMachine(input clk,input[3:0] crew, passenger,cargospace, input[11:0] 
 	DFF d1(clk, ns1, cs1);
 	DFF d2(clk, ns2, cs2);
 	//change here too
-	mux stateSelector({cs2,cs1,cs0}, crew,passenger,cargospace,year,out);
+	mux stateSelector({cs2,cs1,cs0}, crew,passenger,cargospace,year,alt, temperature,radiation,o2,lives,out);
 
 	
 	assign q[0] = cs0;
@@ -282,9 +310,14 @@ module Testbench();
   wire [3:0] passenger = 4'b1011;
   wire [3:0] crew = 4'b0100;
   wire [11:0] year= 12'b011101100011;
+  wire [9:0] alt=10'b0100010000;
+  wire temperature=1;
+  wire radiation=0;
+  wire o2=1;
+  wire lives=1;
   
   //ADD YOUR INPUT HERE TOO
-  TimeMachine ex(clk, crew, passenger,cargospace, year, q, out, cs0, cs1, cs2);
+  TimeMachine ex(clk, crew, passenger,cargospace, year,alt, temperature,radiation,o2,lives,q, out, cs0, cs1, cs2);
           
   initial begin
    $display("TIME MACHINE");
