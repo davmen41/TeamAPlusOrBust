@@ -1947,6 +1947,7 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
     <a name="clabelup" val="east"/>
     <a name="clabelfont" val="SansSerif plain 12"/>
     <wire from="(420,390)" to="(420,460)"/>
+<<<<<<< Updated upstream
     <wire from="(1020,400)" to="(1020,410)"/>
     <wire from="(890,230)" to="(890,240)"/>
     <wire from="(420,460)" to="(470,460)"/>
@@ -1998,13 +1999,41 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
     <wire from="(750,400)" to="(1020,400)"/>
     <wire from="(880,230)" to="(890,230)"/>
     <wire from="(880,270)" to="(890,270)"/>
+=======
+    <wire from="(420,460)" to="(470,460)"/>
+    <wire from="(220,280)" to="(220,290)"/>
+    <wire from="(350,450)" to="(350,460)"/>
+    <wire from="(390,560)" to="(430,560)"/>
+    <wire from="(420,300)" to="(450,300)"/>
+    <wire from="(50,130)" to="(50,550)"/>
+    <wire from="(420,390)" to="(580,390)"/>
+    <wire from="(50,130)" to="(580,130)"/>
+    <wire from="(370,320)" to="(370,440)"/>
+    <wire from="(370,610)" to="(430,610)"/>
+    <wire from="(420,170)" to="(420,300)"/>
+    <wire from="(220,310)" to="(220,320)"/>
+    <wire from="(580,130)" to="(580,390)"/>
+    <wire from="(370,260)" to="(370,280)"/>
+    <wire from="(50,550)" to="(350,550)"/>
+    <wire from="(80,170)" to="(80,450)"/>
+    <wire from="(370,580)" to="(370,610)"/>
+    <wire from="(390,300)" to="(420,300)"/>
+    <wire from="(390,460)" to="(420,460)"/>
+    <wire from="(80,170)" to="(420,170)"/>
+    <wire from="(80,450)" to="(350,450)"/>
+    <wire from="(210,320)" to="(220,320)"/>
+    <wire from="(210,280)" to="(220,280)"/>
+>>>>>>> Stashed changes
     <wire from="(220,470)" to="(350,470)"/>
     <wire from="(220,310)" to="(350,310)"/>
     <wire from="(220,290)" to="(350,290)"/>
     <wire from="(220,570)" to="(350,570)"/>
+<<<<<<< Updated upstream
     <comp lib="3" loc="(1060,250)" name="Adder">
       <a name="width" val="4"/>
     </comp>
+=======
+>>>>>>> Stashed changes
     <comp lib="0" loc="(220,470)" name="Pin">
       <a name="width" val="8"/>
       <a name="tristate" val="false"/>
@@ -2012,6 +2041,7 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
     <comp lib="6" loc="(174,515)" name="Text">
       <a name="text" val="(Max 16)"/>
     </comp>
+<<<<<<< Updated upstream
     <comp lib="6" loc="(962,392)" name="Text">
       <a name="text" val="Passeners + Crew"/>
     </comp>
@@ -2063,11 +2093,15 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
       <a name="text" val="Passengers"/>
     </comp>
     <comp lib="0" loc="(470,460)" name="Pin">
+=======
+    <comp lib="0" loc="(430,610)" name="Pin">
+>>>>>>> Stashed changes
       <a name="facing" val="west"/>
       <a name="output" val="true"/>
       <a name="width" val="8"/>
       <a name="labelloc" val="east"/>
     </comp>
+<<<<<<< Updated upstream
     <comp lib="0" loc="(1040,210)" name="Constant">
       <a name="facing" val="south"/>
       <a name="value" val="0x0"/>
@@ -2107,23 +2141,37 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
       <a name="width" val="4"/>
       <a name="tristate" val="false"/>
     </comp>
+=======
+    <comp lib="0" loc="(370,260)" name="Constant">
+      <a name="facing" val="south"/>
+      <a name="value" val="0x0"/>
+    </comp>
+>>>>>>> Stashed changes
     <comp lib="3" loc="(390,460)" name="Adder"/>
     <comp lib="6" loc="(170,262)" name="Text">
       <a name="text" val="(Max 15)"/>
     </comp>
+<<<<<<< Updated upstream
     <comp lib="0" loc="(890,420)" name="Pin">
       <a name="width" val="4"/>
+=======
+    <comp lib="0" loc="(210,280)" name="Pin">
+      <a name="width" val="8"/>
+>>>>>>> Stashed changes
       <a name="tristate" val="false"/>
     </comp>
     <comp lib="6" loc="(178,611)" name="Text">
       <a name="text" val="3 * 10^8 m/s"/>
     </comp>
+<<<<<<< Updated upstream
     <comp lib="0" loc="(1140,410)" name="Pin">
       <a name="facing" val="west"/>
       <a name="output" val="true"/>
       <a name="width" val="4"/>
       <a name="labelloc" val="east"/>
     </comp>
+=======
+>>>>>>> Stashed changes
     <comp lib="6" loc="(536,541)" name="Text">
       <a name="text" val="Mass * Acceleration = Force = F7,...,F0"/>
     </comp>
@@ -2136,6 +2184,7 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
       <a name="width" val="8"/>
       <a name="labelloc" val="east"/>
     </comp>
+<<<<<<< Updated upstream
     <comp lib="0" loc="(1100,560)" name="Pin">
       <a name="facing" val="west"/>
       <a name="output" val="true"/>
@@ -2144,10 +2193,16 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
     </comp>
     <comp lib="6" loc="(847,547)" name="Text">
       <a name="text" val="Acceleration"/>
+=======
+    <comp lib="0" loc="(210,320)" name="Pin">
+      <a name="width" val="8"/>
+      <a name="tristate" val="false"/>
+>>>>>>> Stashed changes
     </comp>
     <comp lib="6" loc="(165,346)" name="Text">
       <a name="text" val="Crew"/>
     </comp>
+<<<<<<< Updated upstream
     <comp lib="6" loc="(587,442)" name="Text">
       <a name="text" val="(Passengers + Crew) + Resources = Mass"/>
     </comp>
@@ -2170,6 +2225,28 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
       <a name="width" val="4"/>
       <a name="tristate" val="false"/>
     </comp>
+=======
+    <comp lib="6" loc="(502,282)" name="Text">
+      <a name="text" val="Passeners + Crew"/>
+    </comp>
+    <comp lib="6" loc="(587,442)" name="Text">
+      <a name="text" val="(Passengers + Crew) + Resources = Mass"/>
+    </comp>
+    <comp lib="0" loc="(220,570)" name="Pin">
+      <a name="width" val="8"/>
+      <a name="tristate" val="false"/>
+    </comp>
+    <comp lib="0" loc="(470,460)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="width" val="8"/>
+      <a name="labelloc" val="east"/>
+    </comp>
+    <comp lib="6" loc="(177,597)" name="Text">
+      <a name="text" val="Acceleration"/>
+    </comp>
+    <comp lib="3" loc="(390,560)" name="Multiplier"/>
+>>>>>>> Stashed changes
     <comp lib="6" loc="(172,243)" name="Text">
       <a name="text" val="Passengers"/>
     </comp>
@@ -2177,9 +2254,12 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
       <a name="text" val="Force = Mass *Acceleration Circuit Diagram"/>
       <a name="font" val="Times New Roman bold 18"/>
     </comp>
+<<<<<<< Updated upstream
     <comp lib="6" loc="(1206,491)" name="Text">
       <a name="text" val="Mass * Acceleration = Force = F7,...,F0"/>
     </comp>
+=======
+>>>>>>> Stashed changes
     <comp lib="0" loc="(450,300)" name="Pin">
       <a name="facing" val="west"/>
       <a name="output" val="true"/>
@@ -2193,6 +2273,7 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
     <comp lib="6" loc="(175,498)" name="Text">
       <a name="text" val="Resrouces"/>
     </comp>
+<<<<<<< Updated upstream
     <comp lib="0" loc="(880,230)" name="Pin">
       <a name="width" val="4"/>
       <a name="tristate" val="false"/>
@@ -2339,5 +2420,10 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
       <a name="width" val="4"/>
       <a name="tristate" val="false"/>
     </comp>
+=======
+    <comp lib="6" loc="(292,442)" name="Text">
+      <a name="text" val="Passeners + Crew"/>
+    </comp>
+>>>>>>> Stashed changes
   </circuit>
 </project>
