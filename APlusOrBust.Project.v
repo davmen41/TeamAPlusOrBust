@@ -137,7 +137,73 @@ module equals(input [3:0] a, b, output result);
 	and G5(r1,x0,x1);
 	and G5(r2,x2,x3);
 	and ResultGate(result,r1,r2);
-endmodule  
+endmodule 
+
+//4-bit multiplier
+module multiplier(input [3:0] a, b, output [7:0] result);
+	wire [7:0] result;
+	//1st adder
+	wire [3:0] addr1;
+	assign result[0] = a[0] & b[0];
+	assign addr1[0] = a[0] & b[1];
+	assign addr1[1] = a[0] & b[2];
+	assign addr1[2] = a[0] & b[3];
+	assign addr1[3] = 1'b0;
+	
+	wire [3:0] addr2;
+	assign addr2[0] = a[1] & b[0];
+	assign addr2[1] = a[1] & b[1];
+	assign addr2[2] = a[1] & b[2];
+	assign addr2[3] = a[1] & b[3];
+	
+	wire [3:0] out1;
+	wire cout1;
+	nBitAdder #(3) sum1(out1,cout1,addr1, addr2, 1'b0);
+	
+	//2nd Adder
+	wire [3:0] addr3;
+	assign result[1] = out1[0];
+	assign addr3[0] = out1[1];
+	assign addr3[1] = out1[2];
+	assign addr3[2] = out1[3];
+	assign addr3[3] = cout1;
+	
+	wire [3:0] addr4;
+	assign addr4[0] = a[2] & b[0];
+	assign addr4[1] = a[2] & b[1];
+	assign addr4[2] = a[2] & b[2];
+	assign addr4[3] = a[2] & b[3];
+	
+	wire [3:0] out2;
+	wire cout2;
+	nBitAdder #(3) sum2(out2,cout2,addr3, addr4, 1'b0);
+	
+	//3rd Adder
+	wire [3:0] addr5;
+	assign result[2] = out2[0];
+	assign addr5[0] = out2[1];
+	assign addr5[1] = out2[2];
+	assign addr5[2] = out2[3];
+	assign addr5[3] = cout2;
+	
+	wire [3:0] addr6;
+	assign addr6[0] = a[3] & b[0];
+	assign addr6[1] = a[3] & b[1];
+	assign addr6[2] = a[3] & b[2];
+	assign addr6[3] = a[3] & b[3];
+	
+	wire [3:0] out3;
+	wire cout3;
+	nBitAdder #(3) sum3(out3,cout3,addr5, addr6, 1'b0);
+	
+	//set result
+	assign result[3] = out3[0];
+	assign result[4] = out3[1];
+	assign result[5] = out3[2];
+	assign result[6] = out3[3];
+	assign result[7] = cout3;	
+endmodule
+ 
 /*
  * State 1: Rest State
  */
@@ -151,26 +217,24 @@ endmodule
   *	State 2: Load ship
   */
 
-module LoadShip (input [3:0] crewSize, passengerSize, cargoSpace, output[1:0] nextState);
-	wire [3:0] fixedPassengerSize; wire [3:0] fixedCrewSize; wire [3:0] fixedCargoSize;
-	wire isShipFull; wire isCrewOnBoard; wire isCargoFull;
-	reg [2:0] state; wire nextState;
+module LoadShip (input [3:0] crewSize, passengerSize, cargoSpace, output[1:0] nextState, output [3:0] totalWeight, output carryOut);
+	wire carryOut, weightChk;
+	wire [1:0] nextState;
+	reg [1:0] state;
 	
-	assign fixedPassengerSize = 4'b1111;
-	assign fixedCrewSize = 4'b0100;
-	assign fixedCargoSize = 4'b1111;
+	wire[3:0] MAX_WEIGHT = 4'b111;
+	wire [3:0] sum1, totalWeight;
+	wire cout1, cout2;
 	
-	//check passenger size
-	comparator  checkPassengerSize(passengerSize,fixedPassengerSize,isShipFull);
+	nBitAdder #(3) gettotal1(sum1,cout1,passengerSize, crewSize, 1'b0);
+	nBitAdder #(3) gettotal2(totalWeight,carryOut,sum1, cargoSpace, cout1);
+	wire overflow = carryOut ~| 1'b0;
 	
-	//check crew size
-	equals checkCrewSize(crewSize,fixedCrewSize,isCrewOnBoard);
-
-	//check cargo space size
-	comparator checkCargoSize(cargoSpace,fixedCargoSize,isCargoFull);
+	//check to see if weight requirements are met
+	comparator comp(MAX_WEIGHT, totalWeight, weightChk);
+	wire shipLoaded = overflow & weightChk;
 	
-	wire shipLoaded = isShipFull & isCrewOnBoard & isCargoFull;
-
+	
 	always @* begin
 		if(shipLoaded)begin
 			state <= 2'b10;
@@ -209,21 +273,28 @@ endmodule
 /*
  *	State 4: Travel
  */	
-module Travel(input [7:0] water, food,output [1:0] nextState);
-	wire [7:0] enoughFeed;
-	wire [7:0] buffer;
-	wire nextState;
-	wire l,e,s;
-	wire zero=0;
-	wire cout;
-	wire [1:0] temp;
-	assign enoughFeed=8'b1100100; 
+module Travel(input [3:0] passenger, crew, cargo, totalWeight, output [1:0] nextState, output [7:0] currentForce);
+	wire [7:0] currentForce;
+	wire [3:0] sum1;
+	wire cout1, cout2;
+	wire [3:0] FIXED_ACCELERATION = 4'b1000; //acceleration rate is 8yrs/h
+	reg [2:0] state;
+	wire [1:0] nextState;
 	
-	nBitAdder #(7) addUp(buffer,cout,water,food,zero);
-	assign temp={e,s};
-	comparatorCal #(8) comp(buffer, enoughFeed, l,e,s);
-	Mux3a mux(2'b10, 2'b00, 2'b11, temp, nextState) ;
-
+	//calculate force
+	multiplier calcForce(totalWeight, FIXED_ACCELERATION, currentForce);
+	
+	wire [8:0] isForceSafe = currentForce & 8'b10000000;
+	
+	always @* begin
+		if(isForceSafe == 8'b00000000)begin
+			state <= 2'b10;
+		end else begin
+			state <= 2'b11;
+		end
+	end
+	assign nextState = state;
+	
 endmodule
 	
 	
@@ -269,13 +340,18 @@ module mux(
 	output [1:0] out);
 	
 	reg [1:0] out;
-	wire [1:0] rst, load, next,safe,enough;
+	wire [1:0] rst, load, next,safe,enough, fail;
 	wire signed [11:0] difference;
+	wire [7:0] crntFrce;
+	wire [3:0] totalWeight;
+	wire cOut;
+	wire [4:0] totalWithCarry = {cOut, totalWeight};
 	//IF YOU NEED TO OUTPUT AS INTEGER, PARSE HERE
 	integer crewInt, passIn,cargoIn;	
 	integer yearInt,differenceInt;
 	integer altInt;
 	integer h2oInt, breadInt;
+	integer frceInt, ttlweightInt;
 	always @* begin
 		crewInt = crew;
 		passIn = passenger;
@@ -285,15 +361,17 @@ module mux(
 		altInt=alt;
 		h2oInt=h2o;
 		breadInt=bread;
-
+		frceInt=crntFrce;
+		ttlweightInt = totalWithCarry;
 	end
 	
 	//ADD MODULE CALL TO YOUR STATE HERE
 	rest S1(rst);
-	LoadShip S2(crew, passenger, cargospace, load);
+	LoadShip S2(crew, passenger, cargospace, load, totalWeight, cOut);
 	Calculation S3(year,difference, next);
-	Travel S4(h2o,bread,enough);
+	Travel S4(passenger, crew, cargospace, totalWeight, enough, crntFrce);
 	Destination S5(alt,temperature,radiation,o2,lives,safe);
+	doom S6(fail);
 	//ADD MODULE OUTPUT TO CASE STATEMENT AND UPDATE THE OUTPUT FOR YOUR STATE
 	always @(selector) begin
 		case ( selector )
@@ -302,16 +380,16 @@ module mux(
 			3'b010: out = next;
 			3'b011: out = enough;
 			3'b100: out = safe;
-			3'b111: out = 2'b10;
+			3'b111: out = fail;
 			default: out = 2'b00;
 		endcase
 		//Output from each state!
 		case ( selector )
 			3'b000:$display(" Rest State           %b      Firing up all systems...",rst);
-			3'b001:$display(" Load State           %b      Passengers on board %b(%0d)/15, crew %b(%0d)/4, cargo space %b(%0d)/15(kg)"
-				,load,passenger,passIn,crew,crewInt,cargospace,cargoIn);
+			3'b001:$display(" Load State           %b      Total ship weight of passengers %b(%0d), crew %b(%0d) and cargo %b(%0d) is %0d(%b). Maximum Weight is 15(kg*10)"
+				,load,passenger,passIn,crew,crewInt,cargospace,cargoIn, ttlweightInt,totalWithCarry);
 			3'b010:$display(" Calculate State      %b      Current Year:2019, Year travel to:%0d, Difference amount:%0d",next,yearInt,differenceInt);
-			3'b011:$display(" Travel State         %b      Food:%0d, Water:%0d. Check if provisions are enough",safe,breadInt,h2oInt);
+			3'b011:$display(" Travel State         %b      Traveling through time at a current force of %0d(%b) yrs/s",enough,frceInt,crntFrce);
 			3'b100:$display(" Destination State    %b      Safe altitude:384, Landed altitude:%0d,Temperature:%b,Radiation:%b,o2:%b,Lives:%b",
 					safe,altInt,temperature,radiation,o2,lives);
 			3'b111:$display(" Doom State           %b     Whoops! Your ship has crashed, retrace your steps to see your mistake",selector);
@@ -370,8 +448,8 @@ module Testbench();
   wire cs2,cs1,cs0;
   
   //PLACE ALL INPUTS HERE AND MAKE SURE TO INCLUDE THEM IN 
-  wire [3:0] cargospace = 4'b1001;
-  wire [3:0] passenger = 4'b1011;
+  wire [3:0] cargospace = 4'b0010;
+  wire [3:0] passenger = 4'b0011;
   wire [3:0] crew = 4'b0100;
   wire [11:0] year= 12'b011101100011;
   wire [9:0] alt=10'b0100010000;
